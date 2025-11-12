@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Tungsten Standard — v2.1 (single file)</title>
+  <style>
+    :root{
+      --bg0:#05060b;--bg1:#0b1020;--bg2:#0d1326;--card:#0f172a;
+      --ink:#e6edf7;--muted:#99a7c3;--edge:rgba(255,255,255,.08);
+      --c1:#21d3ff;--c2:#9b7cff;--c3:#22c55e;--c4:#f59e0b;--c5:#ef4444;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--ink);font:500 15px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,rgba(33,211,255,.16),transparent),
+        radial-gradient(900px 700px at 120% 10%,rgba(155,124,255,.16),transparent),
+        linear-gradient(180deg,var(--bg1),var(--bg0));
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:28px 16px 72px}
+    h1{margin:0;font-size:34px;letter-spacing:.2px;
+      background:linear-gradient(90deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .sub{color:var(--muted)}
+    .grid{display:grid;gap:14px}
+    .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media (max-width:980px){.g2,.g3,.g4{grid-template-columns:1fr}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));
+      border:1px solid var(--edge);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .pill{display:inline-flex;gap:6px;align-items:center;background:#0f1a33;border:1px solid var(--edge);color:#c7d2fe;
+      padding:6px 10px;border-radius:999px;font-size:12px}
+    input,select,textarea{width:100%;background:#0b1429;border:1px solid var(--edge);color:var(--ink);padding:10px 12px;border-radius:10px}
+    textarea{min-height:120px}
+    .row{display:flex;gap:10px;align-items:center}
+    .right{justify-content:flex-end}
+    .kpi{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--edge)}
+    .kpi b{font-size:18px}
+    .hr{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);margin:12px 0}
+    .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
+    .badge{background:rgba(155,124,255,.18);border:1px solid rgba(155,124,255,.35);padding:4px 8px;border-radius:999px;font-size:12px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+    .tab{padding:10px 14px;border-radius:10px;background:#0b1429;border:1px solid var(--edge);cursor:pointer}
+    .tab.active{background:linear-gradient(180deg,rgba(33,211,255,.12),rgba(155,124,255,.12));border-color:rgba(255,255,255,.22)}
+    .panel.hide{display:none}
+    .list{margin:0;padding-left:18px}
+    .list li{margin:6px 0}
+    /* VO2 ring */
+    .ring{width:170px;height:170px;display:inline-block}
+    .ring svg{filter:drop-shadow(0 4px 22px rgba(33,211,255,.28))}
+    /* unique visual marker for this version */
+    .version{color:#a7f3d0;font-size:12px;border:1px dashed rgba(167,243,208,.35);padding:4px 8px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="row" style="justify-content:space-between;align-items:flex-end">
+      <div>
+        <h1>The Tungsten Standard</h1>
+        <div class="sub">v2.1 • Adaptive health intelligence for getting healthy — and staying healthy.</div>
+      </div>
+      <div class="row">
+        <span class="pill">💡 Single file</span>
+        <span class="pill">🧪 Local only</span>
+        <span class="version">Build ID: TUNGSTEN-211</span>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="vo2">VO₂</button>
+      <button class="tab" data-tab="coach">Coach</button>
+      <button class="tab" data-tab="nutrition">Nutrition</button>
+      <button class="tab" data-tab="recovery">Recovery</button>
+      <button class="tab" data-tab="faith">Faith</button>
+      <button class="tab" data-tab="profile">Profile</button>
+    </nav>
+
+    <!-- VO2 -->
+    <section id="vo2" class="panel">
+      <div class="grid g3">
+        <div class="card" style="text-align:center">
+          <h2>VO₂ Gauge</h2>
+          <div class="hr"></div>
+          <div id="vo2-gauge" class="ring"></div>
+          <div class="grid g2" style="margin-top:12px">
+            <div>
+              <label class="sub">Resting HR (bpm)</label>
+              <input id="hr-rest" type="number" min="35" max="120" value="60" />
+            </div>
+            <div>
+              <label class="sub">HRmax (override)</label>
+              <input id="hr-max-override" type="number" min="100" max="230" placeholder="auto" />
+              <div class="sub" style="font-size:12px">Auto uses 208−0.7×age</div>
+            </div>
+            <div style="grid-column:1/-1">
+              <label class="sub">Cooper 12‑min distance (meters)</label>
+              <input id="cooper-m" type="number" min="0" max="6000" placeholder="e.g., 2600" />
+            </div>
+          </div>
+          <div class="grid g2" style="margin-top:10px">
+            <div class="kpi"><span>Uth VO₂</span><b id="vo2-uth">—</b><span class="sub">ml·kg⁻¹·min⁻¹</span></div>
+            <div class="kpi"><span>Cooper VO₂</span><b id="vo2-cooper">—</b><span class="sub">ml·kg⁻¹·min⁻¹</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Today’s Cardio</h2>
+          <div class="hr"></div>
+          <div class="grid g2">
+            <div class="kpi"><span>Tier</span><b id="cardio-tier">—</b></div>
+            <div class="kpi"><span>Zone 2</span><b id="cardio-z2">—</b><span class="sub">minutes</span></div>
+          </div>
+          <div class="kpi" style="margin-top:10px"><span>Intervals</span><b id="cardio-int">—</b><span class="sub">(1′ hard / 1′ easy)</span></div>
+          <div class="hr"></div>
+          <h3 class="sub">HR Zones (Karvonen)</h3>
+          <ul id="zones" class="list"></ul>
+        </div>
+
+        <div class="card">
+          <h2>VO₂ Trend (local)</h2>
+          <div class="hr"></div>
+          <canvas id="trend" height="170" style="width:100%"></canvas>
+          <div class="sub" style="font-size:12px;margin-top:6px">Saved per day when a VO₂ estimate exists.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coach -->
+    <section id="coach" class="panel hide">
+      <div class="grid g3">
+        <div class="card">
+          <h2>21‑Question Check‑In</h2>
+          <div class="hr"></div>
+          <div id="q-container" class="grid g2"></div>
+        </div>
+        <div class="card">
+          <h2>Today’s Micro‑Goals</h2>
+          <div class="hr"></div>
+          <ul id="micro" class="list"></ul>
+        </div>
+        <div class="card">
+          <h2>Momentum Snapshot</h2>
+          <div class="hr"></div>
+          <div id="momentum" class="grid g3"></div>
+          <div class="sub" style="font-size:12px">Physical • Mental • Relational — averages of sub‑domains</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nutrition -->
+    <section id="nutrition" class="panel hide">
+      <div class="grid g3">
+        <div class="card">
+          <h2>Macros</h2>
+          <div class="hr"></div>
+          <div class="grid g3">
+            <div class="kpi"><span>Protein</span><b id="k-pro">—</b><span class="sub">grams</span></div>
+            <div class="kpi"><span>Carbs</span><b id="k-carb">—</b><span class="sub">grams</span></div>
+            <div class="kpi"><span>Fat</span><b id="k-fat">—</b><span class="sub">grams</span></div>
+          </div>
+          <div class="grid g2" style="margin-top:10px">
+            <div class="kpi"><span>Calories</span><b id="kcal">—</b></div>
+            <div class="kpi"><span>Mode</span><b id="mode">—</b></div>
+          </div>
+          <div class="sub" id="female-bias" style="margin-top:6px"></div>
+        </div>
+        <div class="card">
+          <h2>Timing</h2>
+          <div class="hr"></div>
+          <ul class="list" id="timing"></ul>
+        </div>
+        <div class="card">
+          <h2>Sample Meals</h2>
+          <div class="hr"></div>
+          <ul id="meals" class="list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recovery -->
+    <section id="recovery" class="panel hide">
+      <div class="grid g3">
+        <div class="card">
+          <h2>Hydration & Sleep</h2>
+          <div class="hr"></div>
+          <div class="grid g2">
+            <div class="kpi"><span>Water</span><b id="water">—</b><span class="sub">liters</span></div>
+            <div class="kpi"><span>Sodium</span><b id="sodium">—</b><span class="sub">mg/day</span></div>
+          </div>
+          <div class="kpi" style="margin-top:10px"><span>Sleep</span><b id="sleepH">—</b><span class="sub">hours</span></div>
+        </div>
+        <div class="card">
+          <h2>Cold Exposure</h2>
+          <div class="hr"></div>
+          <ul class="list" id="cold"></ul>
+          <div class="sub" style="font-size:12px">Avoid immediately after heavy lifting (blunts hypertrophy). OK after Zone 2.</div>
+        </div>
+        <div class="card">
+          <h2>Breathing</h2>
+          <div class="hr"></div>
+          <ul class="list">
+            <li>Physiological sigh ×3 for rapid downshift</li>
+            <li>Box breathing 4‑4‑4‑4 for 2–5 min</li>
+            <li>Pre‑sleep: 4‑7‑8 × 4 cycles</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Faith -->
+    <section id="faith" class="panel hide">
+      <div class="grid g2">
+        <div class="card">
+          <h2>Verse of the Day</h2>
+          <div class="hr"></div>
+          <blockquote id="verse" style="margin:0"></blockquote>
+        </div>
+        <div class="card">
+          <h2>Daily Prayer</h2>
+          <div class="hr"></div>
+          <textarea id="prayer" readonly></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile -->
+    <section id="profile" class="panel hide">
+      <div class="grid g2">
+        <div class="card">
+          <h2>Profile</h2>
+          <div class="hr"></div>
+          <div class="grid g2">
+            <div><label class="sub">Name</label><input id="name" placeholder="(optional)"></div>
+            <div><label class="sub">Gender</label><select id="gender"><option value="male">Male</option><option value="female">Female</option></select></div>
+            <div><label class="sub">Age</label><input id="age" type="number" min="12" max="100" value="30"></div>
+            <div><label class="sub">Units</label><select id="unit"><option value="imperial">Imperial</option><option value="metric">Metric</option></select></div>
+          </div>
+          <div class="grid g4" id="imp">
+            <div><label class="sub">Height (ft)</label><input id="h-ft" type="number" value="5"></div>
+            <div><label class="sub">Height (in)</label><input id="h-in" type="number" value="10"></div>
+            <div><label class="sub">Weight (lb)</label><input id="w-lb" type="number" value="190"></div>
+            <div><label class="sub">Goal (lb)</label><input id="gw-lb" type="number" value="180"></div>
+          </div>
+          <div class="grid g3 panel hide" id="met">
+            <div><label class="sub">Height (cm)</label><input id="h-cm" type="number" value="178"></div>
+            <div><label class="sub">Weight (kg)</label><input id="w-kg" type="number" value="86"></div>
+            <div><label class="sub">Goal (kg)</label><input id="gw-kg" type="number" value="82"></div>
+          </div>
+          <div class="grid g2" style="margin-top:10px">
+            <div>
+              <label class="sub">Activity</label>
+              <select id="activity">
+                <option value="sedentary">Sedentary</option>
+                <option value="light">Light (1–3 d/wk)</option>
+                <option value="moderate" selected>Moderate (3–5 d/wk)</option>
+                <option value="active">Active (6–7 d/wk)</option>
+                <option value="athlete">Athlete / 2‑a‑days</option>
+              </select>
+            </div>
+            <div class="grid g2">
+              <div><label class="sub">Resting HR</label><input id="hr-rest-p" type="number" value="60"></div>
+              <div><label class="sub">HRmax (override)</label><input id="hr-max-p" type="number" placeholder="auto"></div>
+            </div>
+          </div>
+          <div id="cycle-wrap" class="panel hide" style="margin-top:10px">
+            <label class="sub">Cycle Phase</label>
+            <select id="cycle">
+              <option value="menstruation">Menstruation</option>
+              <option value="follicular" selected>Follicular</option>
+              <option value="ovulation">Ovulation</option>
+              <option value="luteal">Luteal</option>
+            </select>
+          </div>
+          <div class="hr"></div>
+          <div class="grid g4 sub mono">
+            <div>BMR: <span id="bmr">—</span></div>
+            <div>TDEE: <span id="tdee">—</span></div>
+            <div>Target kcal: <span id="tgt">—</span></div>
+            <div>Mode: <span id="mode2">—</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Notes</h2>
+          <div class="hr"></div>
+          <div class="sub">Educational content only — not medical advice.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sub" style="margin-top:18px">© The Tungsten Standard • Build ID TUNGSTEN-211 • No tracking</div>
+  </div>
+
+  <script>
+    // ===== UTIL =====
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const clamp=(v,lo,hi)=>Math.min(hi,Math.max(lo,v));
+    const round=(x,p=0)=>Math.round(x*10**p)/10**p;
+    const cmFromIn=(ft,inch)=>(Number(ft)*12+Number(inch))*2.54;
+    const kgFromLb=(lb)=>Number(lb)*0.45359237;
+    const today=()=>new Date().toISOString().slice(0,10);
+    const doy=()=>Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);
+    const getLS=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}};
+    const setLS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+
+    // ===== QUESTIONS (EXACT 21) =====
+    const Q=[
+      {k:"sleep",l:"Sleep Quality (Walker, Breus): How would you rate your sleep quality?"},
+      {k:"nutrition",l:"Nutrition (Hyman, Jenkins, Top 20): How well are you fueling your body with whole foods (high-quality proteins, healthy fats, and complex carbs) to manage your energy and mood?"},
+      {k:"hydration",l:"Hydration (Hydration Research): How consistent have you been with your hydration and electrolyte balance?"},
+      {k:"bodyRel",l:"Physical Self-Relationship (Male/Female Body, Itsines, Johnson): How would you rate your relationship with your body, honoring its unique physiology and strength?"},
+      {k:"breath",l:"Stress Management (Wim Hof, SEALs, Breathing): When you feel stressed, how effective are you at using your breath (e.g., Box Breathing, Physiological Sigh) to calm your nervous system?"},
+      {k:"chatter",l:"\"Chatter\" Control (Kross): How well are you managing your negative inner critic and \"chatter\"?"},
+      {k:"compassion",l:"Self-Compassion (Turow): How often are you proactively speaking to yourself with kindness and compassion, as you would a friend?"},
+      {k:"resilience",l:"Emotional Resilience (Davidson, Moffitt): How would you rate your overall emotional well-being and your ability to bounce back from a negative mood or event?"},
+      {k:"focus",l:"Mental Focus (Nideffer, Joyner): How would you rate your ability to maintain focus and perform at your peak, whether at work, in fitness (VO2 max), or in life?"},
+      {k:"grit",l:"Resilience Building (Wim Hof, Cavaliere): How would you rate your commitment to building proactive resilience through intentional challenges (e.g., cold plunges, tough workouts)?"},
+      {k:"rhythm",l:"Internal Rhythm (Clancy, Breus): How in-tune are you with your body's natural rhythms (e.g., circadian, hormonal/menstrual) and how they affect your daily mood and energy?"},
+      {k:"spiritual",l:"Spiritual Connection (Knechtle, Giovannetti, NKJV): How connected do you feel to your sense of purpose, faith, or spiritual well-being?"},
+      {k:"turnToward",l:"\"Turning Toward\" (Gottman): How well are you \"turning toward\" your partner's small, everyday bids for connection?"},
+      {k:"conflict",l:"Conflict Management (Gottman): In disagreements, how well are you avoiding the \"Four Horsemen\" (Criticism, Contempt, Defensiveness, Stonewalling)?"},
+      {k:"trust",l:"Trust & Loyalty (Waldinger, Gottman): How would you rate the level of trust and loyalty in your relationship?"},
+      {k:"overthink",l:"Overthinking (Kross, Perel): How well are you controlling overthinking and rumination about your relationship?"},
+      {k:"intimacy",l:"Intimacy & Desire (Perel): How would you rate the level of intimacy, desire, and \"spark\" in your relationship?"},
+      {k:"selfExpand",l:"Self-Expansion (Lewandowski): Does your partner make you a better person, and do you make them a better person?"},
+      {k:"connection",l:"Connection Quality (Waldinger): How would you rate the overall quality and security of your most important relationship?"},
+      {k:"internalHealth",l:"Internal Health (Braunwald, Morris, Jenkins): Based on your lifestyle (diet, sleep, stress), how well do you feel you are truly taking care of your internal health (heart, lungs, gut)?"},
+      {k:"allIn",l:"The \"All-In\" Check (All Topics): All things considered, how would you rate your \"all-in\" commitment to your mental, physical, and relational health this week?"}
+    ];
+
+    // ===== STATE =====
+    const S = getLS('TUNGSTEN_v21', {
+      name:"", gender:"male", age:30, unit:"imperial",
+      hft:5, hin:10, hcm:178, wlb:190, gwlb:180, wkg:86, gwkg:82,
+      activity:"moderate", cycle:"follicular", hrRest:60, hrMaxO:0, cooper:0,
+      answers:Object.fromEntries(Q.map(q=>[q.k,3])),
+      vo2Series:[]
+    });
+
+    // ===== BUILD 21 UI =====
+    function buildQuestions(){
+      const c=$("#q-container"); c.innerHTML="";
+      Q.forEach(q=>{
+        const w=document.createElement("div"); w.className="card"; w.style.padding="10px";
+        w.innerHTML = `<div class="sub" style="font-size:13px">${q.l}</div>
+          <div class="row" style="gap:8px;margin-top:8px">
+            <input type="range" min="1" max="5" value="${S.answers[q.k]}" data-k="${q.k}">
+            <span class="badge">${S.answers[q.k]}</span>
+          </div>`;
+        c.appendChild(w);
+      });
+      c.querySelectorAll('input[type=range]').forEach(r=>{
+        r.addEventListener('input',e=>{
+          const k=e.target.dataset.k; S.answers[k]=Number(e.target.value);
+          e.target.nextElementSibling.textContent=S.answers[k];
+          save(); computeAll();
+        });
+      });
+    }
+
+    // ===== PHYSIOLOGY =====
+    const ACT={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,athlete:1.9};
+    const hrMaxAuto=age=>Math.round(208-0.7*age);
+    const vo2Uth=(mx,rest)=>(mx&&rest)? round(15.3*(mx/rest),1):0;
+    const vo2Cooper=m=> m? round((m-504.9)/44.73,1):0;
+    const zones=(rest,max)=>[
+      {n:"Z1 Recovery",lo:.5,hi:.6},{n:"Z2 Aerobic",lo:.6,hi:.7},{n:"Z3 Tempo",lo:.7,hi:.8},{n:"Z4 Threshold",lo:.8,hi:.9},{n:"Z5 VO₂/Speed",lo:.9,hi:1}
+    ].map(z=>({name:z.n,hr:`${Math.round(rest+z.lo*(max-rest))}-${Math.round(rest+z.hi*(max-rest))} bpm`}));
+    function cycleAdjust(p){
+      switch(p){
+        case "menstruation": return {kc:+100, water:+300, sleep:+.5, bias:"Deload / skill / Zone 2", micros:["Iron+Vit C","Omega‑3","Mg"]};
+        case "follicular":  return {kc:0, water:0, sleep:0, bias:"Push strength / HIIT", micros:["Creatine 3–5g","Carbs around training"]};
+        case "ovulation":   return {kc:0, water:+150, sleep:0, bias:"Peak power; protect joints", micros:["Collagen+Vit C","Electrolytes"]};
+        case "luteal":      return {kc:+150, water:+400, sleep:+.5, bias:"Zone 2 / tempo; manage heat", micros:["Magnesium","B6","Electrolytes"]};
+        default:            return {kc:0, water:0, sleep:0, bias:"Balanced", micros:[]};
+      }
+    }
+    function bmrMSJ({gender,age,hcm,wkg}){const sex=gender==="female"?-161:5;return 10*wkg+6.25*hcm-5*age+sex}
+    function targetCals({tdee,wkg,gwkg}){const d=gwkg-wkg; if(Math.abs(d)<2) return tdee; return d<0?Math.round(tdee*.82):Math.round(tdee*1.10)}
+    function macros({kcal,wkg,pkg=1.8,fat=.28}){const P=Math.round(wkg*pkg);const F=Math.round((kcal*fat)/9);const C=Math.max(0,Math.round((kcal-P*4-F*9)/4));return{P,F,C}}
+    function cardioTier(score){return score<=45?"rebuild":score<=80?"build":"perform"}
+    function cardioPlan(age,score){const t=cardioTier(score);const Z2=t==="rebuild"?30:t==="build"?40:50; let H=t==="rebuild"?4:t==="build"?6:8; if(age>=50) H=Math.max(3,H-1); return {t,Z2,H}}
+
+    // ===== FAITH =====
+    const VERSES={
+      strength:[{r:"Isaiah 40:31",t:"Those who wait on the Lord shall renew their strength; they shall mount up with wings like eagles."},
+                {r:"Philippians 4:13",t:"I can do all things through Christ who strengthens me."},
+                {r:"Joshua 1:9",t:"Be strong and of good courage; do not be afraid, for the Lord your God is with you."},
+                {r:"Psalm 18:32",t:"It is God who arms me with strength and makes my way perfect."}],
+      peace:[{r:"John 14:27",t:"Peace I leave with you; My peace I give to you."},
+             {r:"Psalm 46:10",t:"Be still, and know that I am God."},
+             {r:"Philippians 4:6-7",t:"Be anxious for nothing... and the peace of God will guard your hearts and minds."},
+             {r:"1 Peter 5:7",t:"Casting all your care upon Him, for He cares for you."}],
+      wisdom:[{r:"James 1:5",t:"If any of you lacks wisdom, let him ask of God."},
+              {r:"Proverbs 3:5-6",t:"Trust in the Lord with all your heart... and He shall direct your paths."},
+              {r:"Proverbs 4:7",t:"Wisdom is the principal thing; therefore get wisdom."},
+              {r:"Psalm 119:105",t:"Your word is a lamp to my feet and a light to my path."}],
+      grace:[{r:"Ephesians 2:8-9",t:"By grace you have been saved through faith; it is the gift of God."},
+             {r:"Romans 5:8",t:"God demonstrates His own love toward us, in that while we were still sinners, Christ died for us."},
+             {r:"1 John 4:19",t:"We love Him because He first loved us."},
+             {r:"Colossians 3:13",t:"Forgive one another, even as Christ forgave you, so you also must do."}]
+    };
+    const PRAYERS={
+      restore:[n=>`Lord, restore ${n||'me'} today—steady breath, quiet mind, faithful steps. Amen.`,
+               n=>`Father, meet ${n||'me'} in fatigue with new mercy and calm focus. Amen.`,
+               n=>`God, help ${n||'me'} rest well and choose one small, healing habit. Amen.`],
+      focus:[n=>`Lord, order ${n||'my'} day. Give clarity for hard work and grace for people. Amen.`,
+             n=>`God, align ${n||'my'} actions with purpose—focused, steady, kind. Amen.`,
+             n=>`Father, help ${n||'me'} do the next right thing with excellence. Amen.`],
+      gratitude:[n=>`Thank You for breath, body, and purpose. Use ${n||'me'} to serve someone well today. Amen.`,
+                 n=>`I’m grateful for progress. Keep ${n||'me'} humble and hopeful. Amen.`,
+                 n=>`Lord, thank You for strength and community; make ${n||'me'} generous today. Amen.`]
+    };
+    const hash=s=>{let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h};
+    const pick=(arr,seed)=>arr[Math.abs(hash(seed))%arr.length];
+    function weakestTheme(scores){
+      const entries=Object.entries(scores).sort((a,b)=>a[1]-b[1]);
+      const wk=entries[0]?.[0]||'strength';
+      if(['sleep','breath','resilience','chatter'].includes(wk)) return 'peace';
+      if(['focus','allIn','overthink'].includes(wk)) return 'wisdom';
+      if(['connection','turnToward','intimacy','trust'].includes(wk)) return 'grace';
+      return 'strength';
+    }
+
+    // ===== RENDER CORE =====
+    function gauge(value=0,target=45){
+      const el=$("#vo2-gauge"); el.innerHTML="";
+      const min=0,max=80,R=70,C=2*Math.PI*R,stroke=10;
+      const pct=Math.max(0,Math.min(1,(value-min)/(max-min))), dash=C*pct;
+      const tPct=Math.max(0,Math.min(1,(target-min)/(max-min))), tDash=C*tPct;
+      el.innerHTML=`<svg viewBox="0 0 170 170">
+        <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0%" stop-color="#21d3ff"/><stop offset="100%" stop-color="#9b7cff"/></linearGradient></defs>
+        <circle cx="85" cy="85" r="${R}" fill="none" stroke="#0b1429" stroke-width="${stroke}" />
+        <circle cx="85" cy="85" r="${R}" fill="none" stroke="url(#g1)" stroke-linecap="round" stroke-width="${stroke}" transform="rotate(-90 85 85)" stroke-dasharray="${dash} ${C}" />
+        <circle cx="85" cy="85" r="${R}" fill="none" stroke="#9fb0d0" stroke-width="2" transform="rotate(-90 85 85)" stroke-dasharray="${tDash} ${C}" />
+        <text x="85" y="80" text-anchor="middle" fill="#fff" font-size="22" font-weight="800">${value||'—'}</text>
+        <text x="85" y="100" text-anchor="middle" fill="#9fb0d0" font-size="10">ml·kg⁻¹·min⁻¹</text>
+        <text x="85" y="122" text-anchor="middle" fill="#9fb0d0" font-size="10">Target: ${target}</text>
+      </svg>`;
+    }
+    function trend(){
+      const c=$("#trend"), ctx=c.getContext("2d");
+      const data=(S.vo2Series||[]).slice(-30);
+      ctx.clearRect(0,0,c.width,c.height);
+      if(!data.length){ ctx.fillStyle='#9fb0d0'; ctx.fillText('No data yet',10,20); return; }
+      const pad=10,w=c.width-2*pad,h=c.height-2*pad; const ys=data.map(d=>d.v);
+      const yMin=Math.min(...ys,35), yMax=Math.max(...ys,80);
+      ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.beginPath();
+      // reference at 40
+      const ref=pad+h*(1-(40-yMin)/(yMax-yMin)); ctx.moveTo(pad,ref); ctx.lineTo(pad+w,ref); ctx.stroke();
+      ctx.strokeStyle='#21d3ff'; ctx.lineWidth=2; ctx.beginPath();
+      data.forEach((d,i)=>{const x=pad+w*(i/(data.length-1)), y=pad+h*(1-(d.v-yMin)/(yMax-yMin)); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y)});
+      ctx.stroke();
+    }
+
+    // ===== COMPUTE ALL =====
+    function computeAll(){
+      const total=Q.reduce((s,q)=>s+Number(S.answers[q.k]||0),0);
+      // body measures
+      const hcm = S.unit==="imperial" ? cmFromIn(S.hft,S.hin) : Number(S.hcm);
+      const wkg = S.unit==="imperial" ? kgFromLb(S.wlb) : Number(S.wkg);
+      const gwkg= S.unit==="imperial" ? kgFromLb(S.gwlb) : Number(S.gwkg);
+      // kcal / macros
+      const bmr=Math.round(bmrMSJ({gender:S.gender,age:Number(S.age),hcm,wkg}));
+      const tdee=Math.round(bmr*(ACT[S.activity]||1.55));
+      const fAdj = S.gender==="female" ? cycleAdjust(S.cycle) : {kc:0,water:0,sleep:0,bias:"Balanced",micros:[]};
+      const kcal = clamp(targetCals({tdee,wkg,gwkg}) + (fAdj.kc||0),1200,5000);
+      const M = macros({kcal,wkg});
+      const mode = kcal < tdee*0.95 ? "cutting" : kcal > tdee*1.05 ? "bulking" : "maintenance";
+      const pPerMeal=Math.max(20,Math.round(M.P/3));
+      const carbsPre=Math.round(M.C*0.25*(S.gender==="female"&&S.cycle==="follicular"?1.1:1));
+      const carbsPost=carbsPre;
+      const fiberTarget=Math.round((kcal/1000)*14);
+      // VO2
+      const HRmax = S.hrMaxO>0? S.hrMaxO : hrMaxAuto(Number(S.age));
+      const uth = vo2Uth(HRmax, Number(S.hrRest||60));
+      const coop = vo2Cooper(Number(S.cooper||0));
+      const vVal= coop || uth || 0;
+      const z = zones(Number(S.hrRest||60), HRmax);
+      const plan = cardioPlan(Number(S.age), total);
+      // Hydration / sleep
+      const waterMl=Math.round(wkg*35 + Math.max(0,plan.Z2-30)*8) + (fAdj.water||0);
+      const liters=round(waterMl/1000,1);
+      const sodium = Math.min(4000, Math.max(1500, 1800 + Math.max(0, plan.Z2-60)*3));
+      const needSleep = clamp(round(7.5 + (S.answers.sleep<=2?.5:0) + (S.answers.breath<=2?.5:0) + (fAdj.sleep||0),1),7,9.5);
+
+      // faith
+      const theme=weakestTheme(S.answers);
+      const verse=pick(VERSES[theme], `${today()}-${theme}-${doy()%60}`);
+      const weakest = Object.entries(S.answers).sort((a,b)=>a[1]-b[1])[0][0];
+      const bucket = ['sleep','breath','resilience','internalHealth'].includes(weakest)?'restore':(['focus','allIn','grit'].includes(weakest)?'focus':'gratitude');
+      const prayer=pick(PRAYERS[bucket],`${today()}-${bucket}-${doy()%60}`)(S.name);
+
+      // write UI
+      $("#bmr").textContent=bmr; $("#tdee").textContent=tdee; $("#tgt").textContent=kcal; $("#mode").textContent=mode; $("#mode2").textContent=mode;
+      $("#k-pro").textContent=M.P; $("#k-carb").textContent=M.C; $("#k-fat").textContent=M.F; $("#kcal").textContent=kcal;
+      $("#timing").innerHTML=`<li>Pre: ~${carbsPre} g carbs + 20–30 g protein (60–90 min before)</li>
+                              <li>Post: ~${carbsPost} g carbs + 20–40 g protein within 2 h</li>
+                              <li>Evening: slow protein (cottage cheese/Greek yogurt) if hungry</li>
+                              <li>Distribute protein evenly; anchor meals to training days</li>`;
+      const meals={cutting:["Yogurt + berries + oats","Chicken + quinoa + greens","Tofu stir‑fry + cauliflower rice"],
+                   maintenance:["Salmon + brown rice + asparagus","Turkey chili","Sushi bowl (fish, rice, avocado)"],
+                   bulking:["Eggs + oats + banana + nut butter","Steak + sweet potato + salad","Lentil curry + rice + EVOO"]};
+      $("#meals").innerHTML=meals[mode].map(x=>`<li>${x}</li>`).join('');
+      $("#female-bias").textContent= S.gender==="female" ? `Phase: ${S.cycle} • Bias: ${fAdj.bias} • Micros: ${fAdj.micros.join(', ')}` : '';
+
+      $("#vo2-uth").textContent=uth||"—"; $("#vo2-cooper").textContent=coop||"—";
+      $("#zones").innerHTML=z.map(x=>`<li>${x.name}: <span class="mono">${x.hr}</span></li>`).join('');
+      $("#cardio-tier").textContent=plan.t; $("#cardio-z2").textContent=plan.Z2; $("#cardio-int").textContent=`${plan.H}×`;
+      $("#water").textContent=liters; $("#sodium").textContent=sodium; $("#sleepH").textContent=needSleep;
+      $("#verse").innerHTML=`<p style="margin:0 0 6px;font-style:italic">“${verse.t}”</p><div class="right sub">— ${verse.r} (NKJV)</div>`;
+      $("#prayer").value=prayer;
+
+      // cold exposure
+      const cold = plan.t==='rebuild' ? ['50–59°F • 1–2 min • 2–3×/wk']
+                 : plan.t==='build'   ? ['48–57°F • 2–4 min • 3×/wk']
+                 : ['45–55°F • 3–5 min • 3–4×/wk'];
+      $("#cold").innerHTML=cold.map(x=>`<li>${x}</li>`).join('');
+
+      // gauge + trend
+      gauge(vVal, Math.max(40, Math.round(vVal*1.05)||45));
+      if((uth||coop) && !(S.vo2Series||[]).some(d=>d.d===today())){ S.vo2Series.push({d:today(),v:coop||uth}); save(); }
+      trend();
+
+      // micro-goals
+      const A=S.answers, micro=[];
+      if(A.sleep<=2) micro.push(`Protect a ${needSleep}h window. Use 3‑2‑1 (alcohol/food/water).`);
+      if(A.breath<=2) micro.push("2–4 min Box Breathing or 3× Physiological Sighs before hard tasks.");
+      if(A.hydration<=2) micro.push(`Hit ${liters} L water + ~${sodium} mg sodium today.`);
+      if(A.nutrition<=2) micro.push(`≥ ${pPerMeal} g protein each meal + ${fiberTarget} g fiber total.`);
+      if(A.focus<=2) micro.push("Single‑task 25 min (timer on). Phone in another room.");
+      if(A.turnToward<=2) micro.push("Turn toward one small bid: eye contact + a curious question.");
+      if(A.allIn<=3) micro.push("Write a 2‑line intention for why you’re all‑in this week.");
+      micro.push(`Cardio: Zone 2 ${plan.Z2} min OR ${plan.H}× (1′ hard / 1′ easy) after warm‑up.`);
+      $("#micro").innerHTML=micro.map(x=>`<li>${x}</li>`).join('');
+
+      // momentum
+      const phy=round((A.sleep+A.nutrition+A.hydration+A.bodyRel)/4,1);
+      const men=round((A.breath+A.chatter+A.compassion+A.resilience+A.focus+A.grit+A.rhythm+A.spiritual)/8,1);
+      const rel=round((A.turnToward+A.conflict+A.trust+A.overthink+A.intimacy+A.selfExpand+A.connection)/7,1);
+      $("#momentum").innerHTML=`<div class="kpi"><span>Physical</span><b>${phy}</b></div>
+                                <div class="kpi"><span>Mental</span><b>${men}</b></div>
+                                <div class="kpi"><span>Relational</span><b>${rel}</b></div>`;
+    }
+
+    // ===== EVENTS =====
+    function syncProfileUI(){
+      $("#name").value=S.name; $("#gender").value=S.gender; $("#age").value=S.age; $("#unit").value=S.unit;
+      $("#h-ft").value=S.hft; $("#h-in").value=S.hin; $("#w-lb").value=S.wlb; $("#gw-lb").value=S.gwlb;
+      $("#h-cm").value=S.hcm; $("#w-kg").value=S.wkg; $("#gw-kg").value=S.gwkg;
+      $("#activity").value=S.activity; $("#hr-rest").value=S.hrRest; $("#hr-rest-p").value=S.hrRest;
+      $("#hr-max-override").value=S.hrMaxO||""; $("#hr-max-p").value=S.hrMaxO||""; $("#cooper-m").value=S.cooper||"";
+      $("#gender").dispatchEvent(new Event('change')); $("#unit").dispatchEvent(new Event('change'));
+    }
+
+    $$("#gender,#unit,#activity,#cycle").forEach(el=>el.addEventListener("change",e=>{
+      const id=e.target.id, v=e.target.value;
+      if(id==="gender"){ S.gender=v; $("#cycle-wrap").classList.toggle("hide", v!=="female"); }
+      if(id==="unit"){ S.unit=v; $("#imp").classList.toggle("hide", v!=="imperial"); $("#met").classList.toggle("hide", v!=="metric"); }
+      if(id==="activity"){ S.activity=v; }
+      if(id==="cycle"){ S.cycle=v; }
+      save(); computeAll();
+    }));
+
+    $$("#name,#age,#h-ft,#h-in,#w-lb,#gw-lb,#h-cm,#w-kg,#gw-kg,#hr-rest,#hr-rest-p,#hr-max-override,#hr-max-p,#cooper-m").forEach(el=>{
+      el.addEventListener("input",e=>{
+        const id=e.target.id, val=e.target.value;
+        if(id==="name") S.name=val;
+        if(id==="age") S.age=Number(val||0);
+        if(id==="h-ft") S.hft=Number(val||0);
+        if(id==="h-in") S.hin=Number(val||0);
+        if(id==="w-lb") S.wlb=Number(val||0);
+        if(id==="gw-lb") S.gwlb=Number(val||0);
+        if(id==="h-cm") S.hcm=Number(val||0);
+        if(id==="w-kg") S.wkg=Number(val||0);
+        if(id==="gw-kg") S.gwkg=Number(val||0);
+        if(id==="hr-rest"||id==="hr-rest-p"){ S.hrRest=Number(val||0); $("#hr-rest").value=S.hrRest; $("#hr-rest-p").value=S.hrRest; }
+        if(id==="hr-max-override"||id==="hr-max-p"){ S.hrMaxO=Number(val||0); $("#hr-max-override").value=val; $("#hr-max-p").value=val; }
+        if(id==="cooper-m") S.cooper=Number(val||0);
+        save(); computeAll();
+      });
+    });
+
+    // tabs
+    $$(".tab").forEach(t=>t.addEventListener("click",()=>{
+      $$(".tab").forEach(x=>x.classList.remove("active")); t.classList.add("active");
+      $$(".panel").forEach(p=>p.classList.add("hide"));
+      $("#"+t.dataset.tab).classList.remove("hide");
+    }));
+
+    function save(){ setLS('TUNGSTEN_v21', S); }
+
+    // init
+    function init(){
+      // Build questions once
+      buildQuestions();
+      // Sync UI from state
+      syncProfileUI();
+      // Compute all views
+      computeAll();
+    }
+    init();
+  </script>
+</body>
+</html>
